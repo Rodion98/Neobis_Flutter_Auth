@@ -1,14 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '/screens/auth/components/my_text_field.dart';
-import '../../src/models/models.dart';
-
 import '../../blocs/sign_in_bloc/sign_in_bloc.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -34,7 +28,6 @@ class _SignInScreenState extends State<SignInScreen> {
         if (state is SignInSuccess) {
           setState(() {
             signInRequired = false;
-            print(signInRequired);
           });
         } else if (state is SignInProcess) {
           setState(() {
@@ -84,9 +77,9 @@ class _SignInScreenState extends State<SignInScreen> {
                   if (val!.isEmpty) {
                     return 'Please fill in this field';
                   } else if (!RegExp(
-                          r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~`)\%\-(_+=;:,.<>/?"[{\]}\|^]).{8,}$')
+                          r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$')
                       .hasMatch(val)) {
-                    return 'Please enter a valid password';
+                    return 'Please enter a valid password without special characters';
                   }
                   return null;
                 },
@@ -143,14 +136,5 @@ class _SignInScreenState extends State<SignInScreen> {
         ),
       ),
     );
-  }
-
-  Future<MyUser?> _getCounterInfo() async {
-    var prefs = await SharedPreferences.getInstance();
-    final myUserInfo = prefs.getString(emailController.text);
-
-    print(myUserInfo);
-    if (myUserInfo == null) return null;
-    return MyUser.fromJson(json.decode(myUserInfo));
   }
 }

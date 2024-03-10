@@ -1,51 +1,35 @@
 import 'package:equatable/equatable.dart';
-import '../entities/entities.dart';
 
 class MyUser extends Equatable {
-  final String password;
   final String email;
+  final String password;
 
   const MyUser({
-    required this.password,
     required this.email,
+    required this.password,
   });
 
   static const empty = MyUser(
-    password: '',
     email: '',
+    password: '',
   );
 
   MyUser copyWith({
-    String? password,
     String? email,
-    // String? name
+    String? password,
   }) {
     return MyUser(
-      password: password ?? this.password,
       email: email ?? this.email,
+      password: password ?? this.password,
     );
   }
 
   MyUser.fromJson(Map<String, dynamic> json)
-      : password = json['password'],
-        email = json['email'];
+      : email = json['email'],
+        password = json['password'];
 
-  Map<String, dynamic> toJson() => {'password': password, 'email': email};
-
-  // MyUserEntity toEntity() {
-  //   return MyUserEntity(
-  //     userId: userId,
-  //     email: email,
-  //   );
-  // }
-
-  // static MyUser fromEntity(MyUserEntity entity) {
-  //   return MyUser(
-  //     userId: entity.userId,
-  //     email: entity.email,
-  //   );
-  // }
+  Map<String, dynamic> toJson() => {'email': email, 'password': password};
 
   @override
-  List<Object?> get props => [password, email];
+  List<Object?> get props => [email, password];
 }

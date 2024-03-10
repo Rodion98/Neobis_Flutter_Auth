@@ -4,57 +4,59 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'home_screen.dart';
 import './screens/auth/welcome_screen.dart';
+import '../../blocs/authentication_bloc/authentication_bloc.dart';
+import '../../blocs/sign_in_bloc/sign_in_bloc.dart';
+import './src/sp_user_repository.dart';
+import '../../src/user_repository.dart';
 
 import 'simple_bloc_observer.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   Bloc.observer = SimpleBlocObserver();
-  runApp(const MyApp());
+  runApp(
+    MyApp(
+      SharedPrefUserRepo(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final UserRepository userRepository;
+  const MyApp(this.userRepository, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    return
-        //  MultiBlocProvider(
-        //   providers: [
-        //     BlocProvider<SignInBloc>(
-        //       create: (context) => SignInBloc(
-        //         userRepository: context.read<AuthenticationBloc>().userRepository,
-        //       ),
-        //     ),
-        //     BlocProvider<PersonBloc>(
-        //       create: (context) => PersonBloc()..add(StartedPerson()),
-        //     ),
-        //   ],
-        //   child:
-        MaterialApp(
-            title: 'Firebase Auth',
-            theme: ThemeData(
-              colorScheme: const ColorScheme.light(
-                  background: Colors.white,
-                  onBackground: Colors.black,
-                  primary: Color.fromRGBO(206, 147, 216, 1),
-                  onPrimary: Colors.black,
-                  secondary: Color.fromRGBO(244, 143, 177, 1),
-                  onSecondary: Colors.white,
-                  tertiary: Color.fromRGBO(255, 204, 128, 1),
-                  error: Colors.red,
-                  outline: Color(0xFF424242)),
-            ),
-            home: WelcomeScreen()
-            //  BlocBuilder<AuthenticationBloc, AuthenticationState>(
-            //   builder: (context, state) {
-            //     if (state.status == AuthenticationStatus.authenticated) {
-            //       return const HomeScreen();
-            //     } else {
-            //       return const WelcomeScreen();
-            //     }
-            //   },
-            // ),
-            );
-    // );
+    return RepositoryProvider<AuthenticationBloc>(
+        create: (context) => AuthenticationBloc(userRepository: userRepository),
+        child: MaterialApp(
+          title: 'SharedPreferences Auth',
+          theme: ThemeData(
+            colorScheme: const ColorScheme.light(
+                background: Colors.white,
+                onBackground: Colors.black,
+                primary: Color.fromRGBO(206, 147, 216, 1),
+                onPrimary: Colors.black,
+                secondary: Color.fromRGBO(38, 69, 248, 1),
+                onSecondary: Colors.white,
+                tertiary: Color.fromRGBO(96, 255, 64, 1),
+                error: Color.fromARGB(255, 245, 56, 42),
+                outline: Color(0xFF424242)),
+          ),
+          home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+            builder: (context, state) {
+              if (state.status == AuthenticationStatus.authenticated) {
+                return BlocProvider(
+                  create: (context) => SignInBloc(
+                      userRepository:
+                          context.read<AuthenticationBloc>().userRepository),
+                  child: const HomeScreen(),
+                );
+              } else {
+                return const WelcomeScreen();
+              }
+            },
+          ),
+        ));
   }
 }

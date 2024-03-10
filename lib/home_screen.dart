@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import './blocs/sign_in_bloc/sign_in_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -6,8 +8,16 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-      title: Text('Home screen'),
-    ));
+      appBar: AppBar(
+        title: const Text('Welcome, you are In !'),
+        actions: [
+          IconButton(
+              onPressed: () {
+                context.read<SignInBloc>().add(const SignOut());
+              },
+              icon: Icon(Icons.login))
+        ],
+      ),
+    );
   }
 }

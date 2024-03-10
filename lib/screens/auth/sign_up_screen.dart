@@ -1,12 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:convert';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../blocs/sign_up_bloc/sign_up_bloc.dart';
-// import 'package:romaingirou_firebase_auth/packages/src/models/user.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'components/my_text_field.dart';
 import '../../src/models/models.dart';
 
@@ -18,7 +15,6 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  static const myUserKey = 'myUserKey';
   var prefs = SharedPreferences.getInstance();
   final passwordController = TextEditingController();
   final emailController = TextEditingController();
@@ -27,11 +23,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   IconData iconPassword = CupertinoIcons.eye_fill;
   bool obscurePassword = true;
   bool signUpRequired = false;
+  bool loginText = false;
 
   bool containsUpperCase = false;
   bool containsLowerCase = false;
   bool containsNumber = false;
-  bool containsSpecialChar = false;
   bool contains8Length = false;
 
   @override
@@ -43,16 +39,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return BlocListener<SignUpBloc, SignUpState>(
       listener: (context, state) {
-        if (state.status == SignUpStatus.success) {
+        if (state is SignUpSuccess) {
+          setState(() {
+            signUpRequired = true;
+            // Navigator.pop(context);
+            loginText = true;
+          });
+        } else if (state is SignUpProcess) {
           setState(() {
             signUpRequired = false;
           });
-          // Navigator.pop(context);
-        } else if (state.status == SignUpStatus.loading) {
-          setState(() {
-            signUpRequired = true;
-          });
-        } else if (state.status == SignUpStatus.error) {
+        } else if (state is SignUpFailure) {
           return;
         }
       },
@@ -117,16 +114,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           containsNumber = false;
                         });
                       }
-                      if (val.contains(RegExp(
-                          r'^(?=.*?[!@#$&*~`)\%\-(_+=;:,.<>/?"[{\]}\|^])'))) {
-                        setState(() {
-                          containsSpecialChar = true;
-                        });
-                      } else {
-                        setState(() {
-                          containsSpecialChar = false;
-                        });
-                      }
+
                       if (val.length >= 8) {
                         setState(() {
                           contains8Length = true;
@@ -155,9 +143,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       if (val!.isEmpty) {
                         return 'Please fill in this field';
                       } else if (!RegExp(
-                              r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~`)\%\-(_+=;:,.<>/?"[{\]}\|^]).{8,}$')
+                              r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$')
                           .hasMatch(val)) {
-                        return 'Please enter a valid password';
+                        return 'Please enter a valid password without special characters';
                       }
                       return null;
                     }),
@@ -184,22 +172,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 ? Colors.green
                                 : Theme.of(context).colorScheme.onBackground),
                       ),
-                      Text(
-                        "⚈  1 number",
-                        style: TextStyle(
-                            color: containsNumber
-                                ? Colors.green
-                                : Theme.of(context).colorScheme.onBackground),
-                      ),
                     ],
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "⚈  1 special character",
+                        "⚈  1 number",
                         style: TextStyle(
-                            color: containsSpecialChar
+                            color: containsNumber
                                 ? Colors.green
                                 : Theme.of(context).colorScheme.onBackground),
                       ),
@@ -215,33 +196,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              // SizedBox(
-              //   width: MediaQuery.of(context).size.width * 0.9,
-              //   child: MyTextField(
-              //       controller: nameController,
-              //       hintText: 'Name',
-              //       obscureText: false,
-              //       keyboardType: TextInputType.name,
-              //       prefixIcon: const Icon(CupertinoIcons.person_fill),
-              //       validator: (val) {
-              //         if (val!.isEmpty) {
-              //           return 'Please fill in this field';
-              //         } else if (val.length > 30) {
-              //           return 'Name too long';
-              //         }
-              //         return null;
-              //       }),
-              // ),
-              // SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-              !signUpRequired
-                  ? Column(
+              signUpRequired
+                  ? Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                          border: Border.all(),
+                          borderRadius: BorderRadius.all(Radius.circular(8))),
+                      child: Text(
+                        'Please Sign In',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    )
+                  : Column(
                       children: [
                         SizedBox(
                           width: MediaQuery.of(context).size.width * 0.5,
                           child: TextButton(
                             onPressed: () {
-                              // _setCounterInfo();
-
                               if (_formKey.currentState!.validate()) {
                                 MyUser myUser = MyUser.empty;
                                 myUser = myUser.copyWith(
@@ -249,10 +224,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   password: passwordController.text,
                                 );
                                 setState(() {
-                                  context.read<SignUpBloc>().add(SignUp(
-                                      emailController.text,
-                                      passwordController.text));
-                                  // print(myUser);
+                                  context.read<SignUpBloc>().add(SignUpRequired(
+                                      myUser, passwordController.text));
                                 });
                               }
                             },
@@ -281,53 +254,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ],
                     )
-                  : Container(
-                      child: Text('Good'),
-                    )
             ],
           ),
         ),
       ),
     );
-  }
-
-  Future _setCounterInfo() async {
-    var prefs = await SharedPreferences.getInstance();
-
-    final myUser = MyUser(
-      email: emailController.text,
-      password: passwordController.text,
-    );
-    print(myUser);
-
-    prefs.setString(myUser.email, json.encode(myUser)).catchError(
-      (error) {
-        onError(error);
-        print('error');
-      },
-    );
-  }
-
-  void onError(dynamic error) {
-    print('Error: $error');
-  }
-
-  Future<MyUser?> _getCounterInfo() async {
-    var prefs = await SharedPreferences.getInstance();
-    final myUserInfo = prefs.getString(emailController.text);
-
-    print(myUserInfo);
-    if (myUserInfo == null) return null;
-    return MyUser.fromJson(json.decode(myUserInfo));
-  }
-
-  Future _printCounterInfo() async {
-    final myUserInfo = await _getCounterInfo();
-
-    if (myUserInfo == null) return;
-    print('==========');
-    print('password: ${myUserInfo.password}');
-    print('email: ${myUserInfo.email}');
-    print('==========');
   }
 }

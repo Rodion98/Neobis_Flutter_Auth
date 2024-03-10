@@ -7,9 +7,9 @@ sealed class SignUpEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class SignUp extends SignUpEvent {
-  final String email;
+class SignUpRequired extends SignUpEvent {
+  final MyUser user;
   final String password;
 
-  const SignUp(this.email, this.password);
+  const SignUpRequired(this.user, this.password);
 }
