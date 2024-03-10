@@ -198,15 +198,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
               const SizedBox(height: 10),
               signUpRequired
                   ? Container(
-                      padding: EdgeInsets.all(8),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 25, vertical: 5),
                       decoration: BoxDecoration(
-                          border: Border.all(),
-                          borderRadius: BorderRadius.all(Radius.circular(8))),
+                        border: Border.all(),
+                        borderRadius: BorderRadius.circular(60),
+                      ),
                       child: Text(
                         'Please Sign In',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontSize: 16,
                             fontWeight: FontWeight.w600),
                       ),
